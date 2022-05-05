@@ -3,4 +3,8 @@ Richard
 John
 Robert
 James
+<<<<<<< HEAD
 Michael
+=======
+Michael
+>>>>>>> f3cf6cfa0a91b9f7b781e90ada905db43bb491ef
