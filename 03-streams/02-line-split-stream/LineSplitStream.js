@@ -3,6 +3,7 @@ const os = require('os')
 
 class LineSplitStream extends stream.Transform {
   constructor(options) {
+<<<<<<< HEAD
     super(options)
     this.remainder = ''
   }
@@ -24,13 +25,43 @@ class LineSplitStream extends stream.Transform {
     this.remainder = line
 
     callback()
+=======
+    super(options);
+
+    this.remainder = '';
+  }
+
+  _transform(chunk, encoding, callback) {
+    const str = this.remainder + chunk.toString();
+
+    let line = '';
+    for (const character of str.split('')) {
+      if (character === os.EOL) {
+        this.push(line);
+        line = '';
+        continue;
+      }
+
+      line += character;
+    }
+    this.remainder = line;
+
+    callback();
+>>>>>>> ef15ef1c5fd907928481b260d7d2ceed5e146de7
   }
 
   _flush(callback) {
     if (this.remainder) {
+<<<<<<< HEAD
       this.push(this.remainder)
     }
     callback()
+=======
+      this.push(this.remainder);
+    }
+
+    callback();
+>>>>>>> ef15ef1c5fd907928481b260d7d2ceed5e146de7
   }
 }
 
