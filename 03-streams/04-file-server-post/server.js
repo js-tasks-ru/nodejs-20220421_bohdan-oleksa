@@ -12,23 +12,52 @@ server.on('request', (req, res) => {
 
   const filepath = path.join(__dirname, 'files', pathname);
 
-  const limit = new LimitSizeStream({ limit: 1000000 });
-
-  const writeFile = fs.createWriteStream(filepath);
-
   switch (req.method) {
     case 'POST':
-      if (pathname.includes('/')) {
+      const limit = new LimitSizeStream({ limit: 1e6 });
+      const writeFile = fs.createWriteStream(filepath, { flags: 'wx' });
+
+      if (req.headers['content-length'] > 1e6) {
+        res.statusCode = 413;
+        res.end('File is too big!');
+        return;
+      }
+
+      req.pipe(limit).pipe(writeFile);
+
+      limit.on('error', (err) => {
+        if (err.code === 'LIMIT_EXCEEDED') {
+          res.statusCode = 413;
+          res.end('File is too big!');
+        } else {
+          res.statusCode = 500;
+          res.end('Error 500');
+        }
+
+        fs.unlink(filepath, (err) => {});
+      });
+
+      writeFile.on('finish', () => {
+        res.statusCode = 201;
+        res.end('File created!');
+      });
+
+      writeFile.on('error', (err) => {
+        if (err.code === 'EEXIST') {
+          res.statusCode = 409;
+          res.end('File is exist!');
+        } else {
+          res.statusCode = 500;
+          res.end('Internal server error');
+          fs.unlink(filepath, (err) => {});
+        }
+      });
+
+      if (pathname.includes('/') || pathname.includes('..')) {
         res.statusCode = 400;
         res.end('Error 400\nWrong path');
       }
 
-      if (fs.existsSync(filepath)) {
-        res.statusCode = 409;
-        res.end('File is exist!');
-      }
-
-      req.pipe(limit).pipe(writeFile);
       req.on('error', (err) => {
         if (err.code === 'LIMIT_EXCEEDED') {
           res.statusCode = 413;
@@ -47,8 +76,6 @@ server.on('request', (req, res) => {
         res.statusCode = 500;
         res.end('Error 500');
       });
-
-      writeFile.on('finish', () => res.end());
       break;
 
     default:

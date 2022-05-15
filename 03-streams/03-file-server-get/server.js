@@ -13,26 +13,27 @@ server.on('request', (req, res) => {
 
   switch (req.method) {
     case 'GET':
-      if (pathname.includes('/')) {
-        res.statusCode = 400;
-        res.end('Error 400');
-      }
+      readFile.pipe(res);
 
       readFile.on('error', (err) => {
         if (err.code === 'ENOENT') {
           res.statusCode = 404;
-          res.end('No file');
+          res.end('No file found');
         } else {
           res.statusCode = 500;
           res.end('Something went wrong');
         }
       });
 
-      req.on('aborted', (err) => {
+      if (pathname.includes('/') || pathname.includes('..')) {
+        res.statusCode = 400;
+        res.end('Error 400');
+      }
+
+      req.on('aborted', () => {
         readFile.destroy();
       });
 
-      readFile.pipe(res);
       break;
 
     default:
@@ -42,3 +43,5 @@ server.on('request', (req, res) => {
 });
 
 module.exports = server;
+
+
