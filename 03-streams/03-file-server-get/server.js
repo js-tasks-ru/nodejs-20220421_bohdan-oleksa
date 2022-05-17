@@ -3,11 +3,14 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 
+const sendFile = require('./sendFile');
+
 const server = new http.Server();
 
 server.on('request', (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname.slice(1);
+<<<<<<< HEAD
   const filepath = path.join(__dirname, 'test/fixtures', pathname);
   const readFile = fs.createReadStream(filepath);
 
@@ -33,6 +36,20 @@ server.on('request', (req, res) => {
       req.on('aborted', () => {
         readFile.destroy();
       });
+=======
+
+  if (pathname.includes('/') || pathname.includes('..')) {
+    res.statusCode = 400;
+    res.end('Nested paths are not allowed');
+    return;
+  }
+
+  const filepath = path.join(__dirname, 'files', pathname);
+
+  switch (req.method) {
+    case 'GET':
+      sendFile(filepath, res, req);
+>>>>>>> 008e01563503aea7568663b3140087544378d164
 
       break;
 
