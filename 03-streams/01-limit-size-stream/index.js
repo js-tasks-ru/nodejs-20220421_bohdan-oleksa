@@ -1,4 +1,4 @@
-const LimitSizeStream = require('./LimitSizeStream');
+const LimitSizeStream = require('./LimitSizeStream')
 const fs = require('fs');
 
 const limitedStream = new LimitSizeStream({limit: 8, encoding: 'utf-8'}); // 8 байт
